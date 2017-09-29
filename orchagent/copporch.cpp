@@ -90,7 +90,7 @@ CoppOrch::CoppOrch(DBConnector *db, string tableName) :
 {
     SWSS_LOG_ENTER();
 
-    initDefaultHostIntfTable();
+//    initDefaultHostIntfTable();
     initDefaultTrapGroup();
     initDefaultTrapIds();
 };

@@ -1163,7 +1163,10 @@ bool PortsOrch::addBridgePort(Port &port)
     attrs.push_back(attr);
 
     attr.id = SAI_BRIDGE_PORT_ATTR_PORT_ID;
-    attr.value.oid = port.m_port_id;
+    if(port.m_type == Port::LAG)
+      attr.value.oid = port.m_lag_id;
+    else
+      attr.value.oid = port.m_port_id;
     attrs.push_back(attr);
 
     /* Create a bridge port with admin status set to UP */

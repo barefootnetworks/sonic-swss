@@ -270,6 +270,8 @@ public:
     string id;
     string description;
     acl_table_type_t type;
+    acl_stage_type_t stage;
+
     // Map port oid to group member oid
     std::map<sai_object_id_t, sai_object_id_t> ports;
     // Map rule name to rule data
@@ -278,6 +280,7 @@ public:
     AclTable()
         : type(ACL_TABLE_UNKNOWN)
         , m_oid(SAI_NULL_OBJECT_ID)
+        , stage(ACL_STAGE_INGRESS)
     {}
 
     sai_object_id_t getOid() { return m_oid; }
@@ -354,7 +357,7 @@ private:
     sai_status_t deleteUnbindAclTable(sai_object_id_t table_oid);
 
     bool processAclTableType(string type, acl_table_type_t &table_type);
-
+    bool processAclTableStage(string stage, acl_stage_type_t &acl_stage);
     bool processPorts(string portsList, std::function<void (sai_object_id_t)> inserter);
     bool validateAclTable(AclTable &aclTable);
     sai_status_t createDTelWatchListTables();

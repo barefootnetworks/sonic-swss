@@ -34,7 +34,6 @@ for i = n, 1, -1 do
         local port_id = redis.call('HGET', 'COUNTERS_QUEUE_PORT_MAP', KEYS[i])
         local pfc_rx_pkt_key = 'SAI_PORT_STAT_PFC_' .. queue_index .. '_RX_PKTS'
         local pfc_on2off_key = 'SAI_PORT_STAT_PFC_' .. queue_index .. '_ON2OFF_RX_PKTS'
-        
 
         -- Get all counters
         local occupancy_bytes = tonumber(redis.call('HGET', counters_table_name .. ':' .. KEYS[i], 'SAI_QUEUE_STAT_CURR_OCCUPANCY_BYTES'))
@@ -42,7 +41,7 @@ for i = n, 1, -1 do
         local pfc_rx_packets = tonumber(redis.call('HGET', counters_table_name .. ':' .. port_id, pfc_rx_pkt_key))
         local pfc_on2off = tonumber(redis.call('HGET', counters_table_name .. ':' .. port_id, pfc_on2off_key))
         local queue_pause_status = redis.call('HGET', counters_table_name .. ':' .. KEYS[i], 'SAI_QUEUE_ATTR_PAUSE_STATUS')
-        
+
         local packets_last = redis.call('HGET', counters_table_name .. ':' .. KEYS[i], 'SAI_QUEUE_STAT_PACKETS_last')
         local pfc_rx_packets_last = redis.call('HGET', counters_table_name .. ':' .. port_id, pfc_rx_pkt_key .. '_last')
         local pfc_on2off_last = redis.call('HGET', counters_table_name .. ':' .. port_id, pfc_on2off_key .. '_last')

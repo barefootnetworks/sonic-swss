@@ -290,6 +290,7 @@ __Figure 2: Generic control flow for DTel events__
 
 __Figure 3: Control flow for DTel events that depend on other Orch agents__
 
+
 ###Ref-counted DTel objects
 These objects cannot be deleted unless their ref-counts are zeros.
 
@@ -300,7 +301,9 @@ These objects cannot be deleted unless their ref-counts are zeros.
 
 __Figure 4: Control flow for DTel events corresponding to ref-counted objects__
 
+
 ###State maintained by DTelOrch agent
+
 **INT session hashmap**
 
 * Key: INT session id

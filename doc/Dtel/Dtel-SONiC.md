@@ -27,7 +27,8 @@ The following figure depicts the overall architecture of SONiC and where Datapla
 
 ![Dataplane Telemetry in SONiC](Dtel_sonic.jpg)
 
-__Figure 1: Dataplane Telemetry in SONiC__
+__Figure 1: Dataplane Telemetry in SONiC__. 
+
 
 Components of SONiC that will be modified or newly added are discussed in the following sub-sections.
 
@@ -284,14 +285,16 @@ Most events are handled as shown in the sequence diagram below. Ones which are d
 
 ![Control flow](cflow-1.jpg)
 
-__Figure 2: Generic control flow for DTel events__
+__Figure 2: Generic control flow for DTel events__. 
+
   
 ![Control flow](cflow-2.jpg)
 
-__Figure 3: Control flow for DTel events that depend on other Orch agents__
+__Figure 3: Control flow for DTel events that depend on other Orch agents__. 
 
 
 ###Ref-counted DTel objects
+
 These objects cannot be deleted unless their ref-counts are zeros.
 
 * INT sessions referenced by INT watchlists
@@ -299,9 +302,9 @@ These objects cannot be deleted unless their ref-counts are zeros.
 
 ![Control flow](cflow-3.jpg "Control flow")
 
-__Figure 4: Control flow for DTel events corresponding to ref-counted objects__
+__Figure 4: Control flow for DTel events corresponding to ref-counted objects__. 
 
-
+  
 ###State maintained by DTelOrch agent
 
 **INT session hashmap**

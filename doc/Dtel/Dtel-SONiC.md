@@ -15,7 +15,7 @@ Definitions/Abbreviation  | Description
 DTEL / DTel	             | Dataplane Telemetry
 ACL                       | Access Control List
 SAI                       | Switch Abstraction Interface
-INT                       | In-Network Telemetry
+INT                       | In-band Network Telemetry
 DSCP							| Differentiated Services Code Point
 OID								| Object IDentifier
 

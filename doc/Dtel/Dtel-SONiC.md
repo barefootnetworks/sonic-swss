@@ -3,10 +3,10 @@
 Revision 0.1
 
 # About this Manual
-This document provides general information on Dataplane Telemetry feature implementation in SONiC
+This document provides general information on the implementation of the Dataplane Telemetry (DTel) feature in SONiC.
 
 # Scope
-This document describes the high level design of Dataplane Telemetry feature in SONiC
+This document describes the high level design of the Dataplane Telemetry feature in SONiC.
 
 # Definitions/Abbreviation
 
@@ -20,7 +20,7 @@ DSCP							| Differentiated Services Code Point
 OID								| Object IDentifier
 
 # Sub-system Overview 
-For more information on Dataplane Telemetry feature, please refer to 
+For more information on Dataplane Telemetry, please refer to 
 [Dataplane Telemetry SAI API proposal](https://github.com/opencomputeproject/SAI/blob/master/doc/DTEL/SAI-Proposal-Data-Plane-Telemetry.md).
 
 The following figure depicts the overall architecture of SONiC and where Dataplane Telemetry components fit in:
@@ -33,20 +33,18 @@ __Figure 1: Dataplane Telemetry in SONiC__.
 Components of SONiC that will be modified or newly added are discussed in the following sub-sections.
 
 ## Application to configure DTel via SONiC
-This is a new Python-based application that reads and writes DTel-specific configuration into Config DB. This application is currently non-interactive. There are plans to make it interactive in the future. Alternatively, this functionality could be integrated with any SONiC CLI infrastructure that might be developed in the future.
+Since currently there is no SONiC CLI, users can configure DTel by interacting with ConfigDB. This can be done either directly, through the Redis CLI, or through the use of configuration tools such as the [Python SwSS SDK](https://github.com/Azure/sonic-py-swsssdk).
 
-The updated configuration from Config DB can be copied to configDB.json using "config save". This will ensure that DTel configuration is saved across reboots. 
-
-For manually loading configDB.json into Config DB, use "config load"
+The running configuration can be copied from ConfigDB to configDB.json using "config save". This ensures that DTel configuration is persistent across reboots. Users can also load manually configDB.json into Config DB, using "config load"
 
 ## Config DB 
 ### New tables in Config DB for Dataplane Telemetry configuration
 
 Table name				     | Description
 ----------------------------| -------------
-DTEL_TABLE	               | DTel configuration applied at switch global level
+DTEL_TABLE	               | Switch-wide DTel configuration parameters
 DTEL\_REPORT\_SESSION\_TABLE| DTel report session specific configuration
-DTEL\_INT\_SESSION\_TABLE   | In-Network Telemetry session specific configuration
+DTEL\_INT\_SESSION\_TABLE   | In-band Network Telemetry session specific configuration
 DTEL\_QUEUE\_REPORT\_TABLE  | DTel Queue report related configuration
 DTEL\_EVENT\_TABLE          | Configuration specific to DTel events that trigger reports 
 
@@ -183,32 +181,32 @@ Example configuration using redis-cli
 
 key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_STATE"
 ;field                      = value
-EVENT_REPORT_SESSION        = 1*255VCHAR ; report-session-name previously configured
+EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
 key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_REPORT_ALL_PACKETS"
 ;field                      = value
-EVENT_REPORT_SESSION        = 1*255VCHAR ; report-session-name previously configured
+EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
 key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_TCPFLAG"
 ;field                      = value
-EVENT_REPORT_SESSION        = 1*255VCHAR ; report-session-name previously configured
+EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
 key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_THRESHOLD_BREACH"
 ;field                      = value
-EVENT_REPORT_SESSION        = 1*255VCHAR ; report-session-name previously configured
+EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
 key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_TAIL_DROP"
 ;field                      = value
-EVENT_REPORT_SESSION        = 1*255VCHAR ; report-session-name previously configured
+EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
 key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_DROP_REPORT"
 ;field                      = value
-EVENT_REPORT_SESSION        = 1*255VCHAR ; report-session-name previously configured
+EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 ```
 
@@ -222,18 +220,18 @@ Example configuration using redis-cli
     HMSET DTEL_EVENT_TABLE|EVENT_TYPE_DROP_REPORT EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 60
     
 #### Changes to ACL\_TABLE for DTel watchlist support
-Two now ACL table types are introduced to support DTel watchlists:
+Two new ACL table types are introduced to support DTel watchlists:
 
     ACL_TABLE_DTEL_FLOW_WATCHLIST
     ACL_TABLE_DTEL_DROP_WATCHLIST
     
-Table names are:
+The names of these tables are:
 
     DTEL_FLOW_WATCHLIST
     DTEL_DROP_WATCHLIST
 
 #### Changes to ACL\_RULE\_TABLE for DTel watchlist support
-New match fields and actions are introduced to support DTel watchlists
+New match fields and actions are introduced to support DTel watchlists.
 
 **Only incremental changes are shown here. Please refer to ACL_RULE table schema for other fields**
 
@@ -243,14 +241,14 @@ New match fields and actions are introduced to support DTel watchlists
 
 key                         = ACL_RULE:table_name:rule_name   ; rule_name is a unique string.
 ;field                      = value
-TUNNEL_VNI                  = 
+TUNNEL_VNI                  = 1*6HEXDIG ; VXLAN Network Identifier
 INNER_ETHER_TYPE            = 1*4HEXDIG ; Ethernet type field of the inner header
 INNER_IP_PROTOCOL           = 1*2HEXDIG ; IP protocol type of the inner header
 INNER_L4_SRC_PORT           = 1*5DIGIT  ; a number between 0 and 65535
 INNER_L4_DST_PORT           = 1*5DIGIT  ; a number between 0 and 65535
 FLOW_OP                     = "NOP" / "POSTCARD" / "INT" / "IOAM" ; Applicable only when 
                                                                   ; table name is DTEL_FLOW_WATCHLIST
-INT_SESSION                 = 1*255VCHAR ; INT-session-name previously configured.
+INT_SESSION                 = 1*255VCHAR ; previously configured INT-session-name
                                          ; Applicable only when FLOW_OP = INT or IOAM
 DROP_REPORT_ENABLE          = "TRUE" / "FALSE" ; Applicable only when table name is DTEL_DROP_WATCHLIST
                                                ; Note: FLOW_OP is not set when this is set
@@ -295,7 +293,7 @@ __Figure 3: Control flow for DTel events that depend on other Orch agents__.
 
 ### Ref-counted DTel objects
 
-These objects cannot be deleted unless their ref-counts are zeros.
+These objects cannot be deleted unless their ref-counts are zero.
 
 * INT sessions referenced by INT watchlists
 * Report sessions referenced by DTel events

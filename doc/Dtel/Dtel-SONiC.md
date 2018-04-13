@@ -21,7 +21,7 @@ OID								| Object IDentifier
 
 # Sub-system Overview 
 For more information on Dataplane Telemetry, please refer to 
-[Dataplane Telemetry SAI API proposal](https://github.com/opencomputeproject/SAI/blob/master/doc/DTEL/SAI-Proposal-Data-Plane-Telemetry.md).
+[Dataplane Telemetry SAI API](https://github.com/opencomputeproject/SAI/blob/master/doc/DTEL/SAI-Proposal-Data-Plane-Telemetry.md).
 
 The following figure depicts the overall architecture of SONiC and where Dataplane Telemetry components fit in:
 
@@ -49,7 +49,7 @@ DTEL\_QUEUE\_REPORT\_TABLE  | DTel Queue report related configuration
 DTEL\_EVENT\_TABLE          | Configuration specific to DTel events that trigger reports 
 
 Please refer to 
-[Dataplane Telemetry SAI API proposal](https://github.com/opencomputeproject/SAI/blob/master/doc/DTEL/SAI-Proposal-Data-Plane-Telemetry.md) for more information on the above terminology
+[Dataplane Telemetry SAI API](https://github.com/opencomputeproject/SAI/blob/master/doc/DTEL/SAI-Proposal-Data-Plane-Telemetry.md) for more information on the above terminology
 
 #### Schema for DTEL_TABLE
 
@@ -120,8 +120,8 @@ key                     = DTEL_REPORT_SESSION_TABLE|report-session-name ; report
 ;field                  = value
 SRC_IP                  = ipv4_addr   ;IP address
 DST_IP_LIST             = 1*ipv4_addr ;IP addresses separated by semi-colon
-VRF                     = 1*255VCHAR
-TRUNCATE_SIZE           = 1*DIGIT
+VRF                     = 1*255VCHAR  ;Currently, only default VRF is supported
+TRUNCATE_SIZE           = 1*DIGIT
 UDP_DEST_PORT           = 1*DIGIT
 
 ;value annotations
@@ -168,7 +168,7 @@ THRESHOLD_BREACH_QUOTA      = 1*DIGIT
 REPORT_TAIL_DROP            = "TRUE" / "FALSE"
 
 ;value annotations
-qnum = 1*DIGIT ; number between 0 and 7
+qnum = 1*DIGIT ; number between 0 and MAX_QUEUES_PER_PORT for the platform
 ```
 Example configuration using redis-cli
 
@@ -229,6 +229,7 @@ The names of these tables are:
 
     DTEL_FLOW_WATCHLIST
     DTEL_DROP_WATCHLIST
+    
 
 #### Changes to ACL\_RULE\_TABLE for DTel watchlist support
 New match fields and actions are introduced to support DTel watchlists.
@@ -270,14 +271,12 @@ Example configuration using redis-cli
 
 ## DTel orchagent
 
-Events directed to DTel orchagent will be demuxed based on the ConfigDB table name.
+This is a new Orch agent added to handle DTel events. These events are demuxed based on the ConfigDB table name.
 
 Events handled by DtelOrch agent:
 
     * Set event
     * Delete event
-
-Any "Set" event issued after a successful "Set" will result in DtelOrch agent issuing a "Delete" followed by a "Set" for the attribute. This eliminates the need to save state in DTelOrch agent and the additional processing needed to compute the diffs between consecutive "Set"s.
 
 Most events are handled as shown in the sequence diagram below. Ones which are different are depicted in the following figures.
 
@@ -334,3 +333,15 @@ __Figure 4: Control flow for DTel events corresponding to ref-counted objects__.
 * Value:
 	* Event OID
 		* Report session ID (reference to the Report session)
+		
+## Acl orchagent
+AclOrch agent will be modified to process the new match fields and actions. 
+New sub-classes to AclRule will be added:
+
+* AclRuleDTelDropWatchList
+* AclRuleDTelFlowWatchList
+
+AclRule objects of the above types are created if ACL table corresponding to the configured rule matches one of:
+
+ACL_TABLE_DTEL_FLOW_WATCHLIST
+ACL_TABLE_DTEL_DROP_WATCHLIST

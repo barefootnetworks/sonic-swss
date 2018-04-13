@@ -343,5 +343,5 @@ New sub-classes to AclRule will be added:
 
 AclRule objects of the above types are created if ACL table corresponding to the configured rule matches one of:
 
-ACL_TABLE_DTEL_FLOW_WATCHLIST
-ACL_TABLE_DTEL_DROP_WATCHLIST
+* ACL_TABLE_DTEL_FLOW_WATCHLIST 
+* ACL_TABLE_DTEL_DROP_WATCHLIST

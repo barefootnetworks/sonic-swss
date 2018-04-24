@@ -35,7 +35,7 @@ Components of SONiC that will be modified or newly added are discussed in the fo
 ## Application to configure DTel via SONiC
 Since currently there is no SONiC CLI, users can configure DTel by interacting with ConfigDB. This can be done either directly, through the Redis CLI, or through the use of configuration tools, such as the [Python SwSS SDK](https://github.com/Azure/sonic-py-swsssdk).
 
-# euclid
+## euclid
 
 euclid (Euclid Universal Configuration LIbrary for Dataplane telemetry)
 is a Python module for configuring telemetry on a switch. Using euclid,

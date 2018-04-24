@@ -94,7 +94,7 @@ wl.create_entry(priority=10,
 etc.
 
 To use euclid, users have to just import the module in their python script.
-Our tests for DTel make use of euclid.
+Our tests for DTel make use of euclid, and more examples can be found there.
 
 
 ## Config DB 

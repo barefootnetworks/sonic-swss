@@ -96,60 +96,121 @@ etc.
 To use euclid, users have to just import the module in their python script.
 Our tests for DTel make use of euclid, and more examples can be found there.
 
+Sample configuration in config_db.json after "config save":
+
+```
+    "DTEL_A_TABLE": {
+        "FLOW_STATE_CLEAR_CYCLE": {
+            "FLOW_STATE_CLEAR_CYCLE": "0"
+        },
+        "SINK_PORT_LIST": {
+            "Ethernet2": "Ethernet2",
+            "Ethernet0": "Ethernet0",
+            "Ethernet1": "Ethernet1"
+        },
+        "INT_ENDPOINT": {
+            "INT_ENDPOINT": "TRUE"
+        },
+        "INT_L4_DSCP": {
+            "INT_L4_DSCP_MASK": "1",
+            "INT_L4_DSCP_VALUE": "1"
+        },
+        "SWITCH_ID": {
+            "SWITCH_ID": "1"
+        },
+        "LATENCY_SENSITIVITY": {
+            "LATENCY_SENSITIVITY": "30"
+        }
+    },
+    
+    "DTEL_C_INT_SESSION_TABLE": {
+        "INT_SESSION1": {
+            "COLLECT_EGRESS_TIMESTAMP": "FALSE",
+            "COLLECT_SWITCH_PORTS": "FALSE",
+            "COLLECT_INGRESS_TIMESTAMP": "FALSE",
+            "COLLECT_SWITCH_ID": "TRUE",
+            "MAX_HOP_COUNT": "8",
+            "COLLECT_QUEUE_INFO": "FALSE"
+        }
+    },
+    
+    "DTEL_B_REPORT_SESSION_TABLE": {
+        "REPORT_SESSION1": {
+            "SRC_IP": "10.12.11.20",
+            "TRUNCATE_SIZE": "256",
+            "VRF": "default",
+            "DST_IP_LIST": "192.168.2.2",
+            "UDP_DEST_PORT": "32766"
+        }
+    },
+    
+    "ACL_RULE": {
+        "DTEL_FLOW_WATCHLIST|RULE1": {
+            "FLOW_SAMPLE_PERCENT": "100",
+            "PRIORITY": "10",
+            "ETHER_TYPE": "2048",
+            "REPORT_ALL_PACKETS": "TRUE",
+            "SRC_IP": "192.168.4.2/32",
+            "INT_SESSION": "INT_SESSION1",
+            "FLOW_OP": "INT",
+            "DST_IP": "192.168.3.2/32"
+        }
+    },
+```
 
 ## Config DB 
 ### New tables in Config DB for Dataplane Telemetry configuration
 
 Table name				     | Description
 ----------------------------| -------------
-DTEL_TABLE	               | Switch-wide DTel configuration parameters
-DTEL\_REPORT\_SESSION\_TABLE| DTel report session specific configuration
-DTEL\_INT\_SESSION\_TABLE   | In-band Network Telemetry session specific configuration
-DTEL\_QUEUE\_REPORT\_TABLE  | DTel Queue report related configuration
-DTEL\_EVENT\_TABLE          | Configuration specific to DTel events that trigger reports 
+DTEL\_A\_TABLE	               | Switch-wide DTel configuration parameters
+DTEL\_B\_REPORT\_SESSION\_TABLE| DTel report session specific configuration
+DTEL\_C\_INT\_SESSION\_TABLE   | In-band Network Telemetry session specific configuration
+DTEL\_D\_QUEUE\_REPORT\_TABLE  | DTel Queue report related configuration
+DTEL\_E\_EVENT\_TABLE          | Configuration specific to DTel events that trigger reports 
 
 Please refer to 
 [Dataplane Telemetry SAI API](https://github.com/opencomputeproject/SAI/blob/master/doc/DTEL/SAI-Proposal-Data-Plane-Telemetry.md) for more information on the above terminology
 
-#### Schema for DTEL_TABLE
+#### Schema for DTEL_A_TABLE
 
 ```
 ; Switch global Dataplane telemetry configuration
 ; SAI mapping - saidtel.h
 
-key                     = "DTEL_TABLE|SWITCH_ID"
+key                     = "DTEL_A_TABLE|SWITCH_ID"
 ;field                  = value
 SWITCH_ID               = 1*DIGIT
 
-key                     = "DTEL_TABLE|FLOW_STATE_CLEAR_CYCLE"
+key                     = "DTEL_A_TABLE|FLOW_STATE_CLEAR_CYCLE"
 ;field                  = value
 FLOW_STATE_CLEAR_CYCLE  = 1*DIGIT
 
-key                     = "DTEL_TABLE|LATENCY_SENSITIVITY"
+key                     = "DTEL_A_TABLE|LATENCY_SENSITIVITY"
 ;field                  = value
 LATENCY_SENSITIVITY     = 1*DIGIT
 
-key                     = "DTEL_TABLE|SINK_PORT_LIST"
+key                     = "DTEL_A_TABLE|SINK_PORT_LIST"
 ;field                  = value
 ifName                  = ifName
 
-key                     = "DTEL_TABLE|INT_ENDPOINT"
+key                     = "DTEL_A_TABLE|INT_ENDPOINT"
 ;field                  = value
 INT_ENDPOINT            = "TRUE" / "FALSE"
 
-key                     = "DTEL_TABLE|POSTCARD"
+key                     = "DTEL_A_TABLE|POSTCARD"
 ;field                  = value
 POSTCARD                = "TRUE" / "FALSE"
 
-key                     = "DTEL_TABLE|DROP_REPORT"
+key                     = "DTEL_A_TABLE|DROP_REPORT"
 ;field                  = value
 DROP_REPORT             = "TRUE" / "FALSE"
 
-key                     = "DTEL_TABLE|QUEUE_REPORT"
+key                     = "DTEL_A_TABLE|QUEUE_REPORT"
 ;field                  = value
 QUEUE_REPORT            = "TRUE" / "FALSE"
 
-key                     = "DTEL_TABLE|INT_L4_DSCP"
+key                     = "DTEL_A_TABLE|INT_L4_DSCP"
 ;field                  = value
 INT_L4_DSCP_VALUE       = 1*DIGIT
 INT_L4_DSCP_MASK        = 1*DIGIT
@@ -157,24 +218,24 @@ INT_L4_DSCP_MASK        = 1*DIGIT
 
 Example configuration using redis-cli
 
-    HSET DTEL_TABLE|SWITCH_ID SWITCH_ID "1"
-    HSET DTEL_TABLE|FLOW_STATE_CLEAR_CYCLE FLOW_STATE_CLEAR_CYCLE "10"
-    HSET DTEL_TABLE|LATENCY_SENSITIVITY LATENCY_SENSITIVITY "100"
-    HMSET DTEL_TABLE|SINK_PORT_LIST Ethernet8 "Ethernet8" Ethernet76 "Ethernet76" Ethernet84 "Ethernet84"
-    HSET DTEL_TABLE|INT_ENDPOINT INT_ENDPOINT "TRUE"
-    HSET DTEL_TABLE|INT_TRANSIT INT_TRANSIT "TRUE"
-    HSET DTEL_TABLE|POSTCARD POSTCARD "TRUE"
-    HSET DTEL_TABLE|DROP_REPORT DROP_REPORT "TRUE"
-    HSET DTEL_TABLE|QUEUE_REPORT QUEUE_REPORT "TRUE"
-    HMSET DTEL_TABLE|INT_L4_DSCP INT_L4_DSCP_VALUE "128" INT_L4_DSCP_MASK "255"
+    HSET DTEL_A_TABLE|SWITCH_ID SWITCH_ID "1"
+    HSET DTEL_A_TABLE|FLOW_STATE_CLEAR_CYCLE FLOW_STATE_CLEAR_CYCLE "10"
+    HSET DTEL_A_TABLE|LATENCY_SENSITIVITY LATENCY_SENSITIVITY "100"
+    HMSET DTEL_A_TABLE|SINK_PORT_LIST Ethernet8 "Ethernet8" Ethernet76 "Ethernet76" Ethernet84 "Ethernet84"
+    HSET DTEL_A_TABLE|INT_ENDPOINT INT_ENDPOINT "TRUE"
+    HSET DTEL_A_TABLE|INT_TRANSIT INT_TRANSIT "TRUE"
+    HSET DTEL_A_TABLE|POSTCARD POSTCARD "TRUE"
+    HSET DTEL_A_TABLE|DROP_REPORT DROP_REPORT "TRUE"
+    HSET DTEL_A_TABLE|QUEUE_REPORT QUEUE_REPORT "TRUE"
+    HMSET DTEL_A_TABLE|INT_L4_DSCP INT_L4_DSCP_VALUE "128" INT_L4_DSCP_MASK "255"
     
-#### Schema for DTEL\_REPORT\_SESSION\_TABLE
+#### Schema for DTEL\_B\_REPORT\_SESSION\_TABLE
 
 ```
 ; Dataplane telemetry report session configuration
 ; SAI mapping - saidtel.h
 
-key                     = DTEL_REPORT_SESSION_TABLE|report-session-name ; report-session-name is a 
+key                     = DTEL_B_REPORT_SESSION_TABLE|report-session-name ; report-session-name is a 
                                                                         ; unique string representing 
                                                                         ; a report session
 ;field                  = value
@@ -194,14 +255,14 @@ dec-octet   = DIGIT                     ; 0-9
 ```
 Example configuration using redis-cli
 
-    HMSET DTEL_REPORT_SESSION_TABLE|RS-1 SRC_IP 10.10.10.1 DST_IP_LIST 20.20.20.1;20.20.20.2;20.20.20.3 VRF default TRUNCATE_SIZE 256 UDP_DEST_PORT 2000
+    HMSET DTEL_B_REPORT_SESSION_TABLE|RS-1 SRC_IP 10.10.10.1 DST_IP_LIST 20.20.20.1;20.20.20.2;20.20.20.3 VRF default TRUNCATE_SIZE 256 UDP_DEST_PORT 2000
 
-#### Schema for DTEL\_INT\_SESSION\_TABLE
+#### Schema for DTEL\_C\_INT\_SESSION\_TABLE
 ```
 ; Dataplane telemetry INT session configuration
 ; SAI mapping - saidtel.h
 
-key                         = DTEL_INT_SESSION_TABLE|INT-session-name ; INT-session-name is a 
+key                         = DTEL_C_INT_SESSION_TABLE|INT-session-name ; INT-session-name is a 
                                                                       ; unique string representing 
                                                                       ; a INT session
 ;field                      = value
@@ -214,14 +275,14 @@ COLLECT_QUEUE_INFO          = "TRUE" / "FALSE"
 ```
 Example configuration using redis-cli
 
-    HMSET DTEL_INT_SESSION_TABLE|INT-1 MAX_HOP_COUNT 50 COLLECT_SWITCH_ID TRUE COLLECT_INGRESS_TIMESTAMP TRUE COLLECT_EGRESS_TIMESTAMP TRUE COLLECT_SWITCH_PORTS TRUE COLLECT_QUEUE_INFO TRUE
+    HMSET DTEL_C_INT_SESSION_TABLE|INT-1 MAX_HOP_COUNT 50 COLLECT_SWITCH_ID TRUE COLLECT_INGRESS_TIMESTAMP TRUE COLLECT_EGRESS_TIMESTAMP TRUE COLLECT_SWITCH_PORTS TRUE COLLECT_QUEUE_INFO TRUE
 
-#### Schema for DTEL\_QUEUE\_REPORT\_TABLE
+#### Schema for DTEL\_D\_QUEUE\_REPORT\_TABLE
 ```
 ; Dataplane telemetry queue report configuration
 ; SAI mapping - saidtel.h
 
-key                         = DTEL_QUEUE_REPORT_TABLE|ifName|qnum  ; ifname is the name of the interface
+key                         = DTEL_D_QUEUE_REPORT_TABLE|ifName|qnum  ; ifname is the name of the interface
 ;field                      = value
 QUEUE_DEPTH_THRESHOLD       = 1*DIGIT
 QUEUE_LATENCY_THRESHOLD     = 1*DIGIT
@@ -233,39 +294,39 @@ qnum = 1*DIGIT ; number between 0 and MAX_QUEUES_PER_PORT for the platform
 ```
 Example configuration using redis-cli
 
-    HMSET DTEL_QUEUE_REPORT_TABLE|Ethernet8|0 QUEUE_DEPTH_THRESHOLD 1000 QUEUE_LATENCY_THRESHOLD 2000 THRESHOLD_BREACH_QUOTA 3000 REPORT_TAIL_DROP TRUE
+    HMSET DTEL_D_QUEUE_REPORT_TABLE|Ethernet8|0 QUEUE_DEPTH_THRESHOLD 1000 QUEUE_LATENCY_THRESHOLD 2000 THRESHOLD_BREACH_QUOTA 3000 REPORT_TAIL_DROP TRUE
     
-#### Schema for DTEL\_EVENT\_TABLE
+#### Schema for DTEL\_E\_EVENT\_TABLE
 ```
 ; Dataplane telemetry event related configuration
 ; SAI mapping - saidtel.h
 
-key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_STATE"
+key                         = "DTEL_E_EVENT_TABLE|EVENT_TYPE_FLOW_STATE"
 ;field                      = value
 EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
-key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_REPORT_ALL_PACKETS"
+key                         = "DTEL_E_EVENT_TABLE|EVENT_TYPE_FLOW_REPORT_ALL_PACKETS"
 ;field                      = value
 EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
-key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_TCPFLAG"
+key                         = "DTEL_E_EVENT_TABLE|EVENT_TYPE_FLOW_TCPFLAG"
 ;field                      = value
 EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
-key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_THRESHOLD_BREACH"
+key                         = "DTEL_E_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_THRESHOLD_BREACH"
 ;field                      = value
 EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
-key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_TAIL_DROP"
+key                         = "DTEL_E_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_TAIL_DROP"
 ;field                      = value
 EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
 
-key                         = "DTEL_EVENT_TABLE|EVENT_TYPE_DROP_REPORT"
+key                         = "DTEL_E_EVENT_TABLE|EVENT_TYPE_DROP_REPORT"
 ;field                      = value
 EVENT_REPORT_SESSION        = 1*255VCHAR ; previously configured report-session-name
 EVENT_DSCP_VALUE            = 1*DIGIT
@@ -273,12 +334,12 @@ EVENT_DSCP_VALUE            = 1*DIGIT
 
 Example configuration using redis-cli
 
-    HMSET DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_STATE EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 65
-    HMSET DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_REPORT_ALL_PACKETS EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 64
-    HMSET DTEL_EVENT_TABLE|EVENT_TYPE_FLOW_TCPFLAG EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 63
-    HMSET DTEL_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_THRESHOLD_BREACH EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 62
-    HMSET DTEL_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_TAIL_DROP EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 61
-    HMSET DTEL_EVENT_TABLE|EVENT_TYPE_DROP_REPORT EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 60
+    HMSET DTEL_E_EVENT_TABLE|EVENT_TYPE_FLOW_STATE EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 65
+    HMSET DTEL_E_EVENT_TABLE|EVENT_TYPE_FLOW_REPORT_ALL_PACKETS EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 64
+    HMSET DTEL_E_EVENT_TABLE|EVENT_TYPE_FLOW_TCPFLAG EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 63
+    HMSET DTEL_E_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_THRESHOLD_BREACH EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 62
+    HMSET DTEL_E_EVENT_TABLE|EVENT_TYPE_QUEUE_REPORT_TAIL_DROP EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 61
+    HMSET DTEL_E_EVENT_TABLE|EVENT_TYPE_DROP_REPORT EVENT_REPORT_SESSION RS-1 EVENT_DSCP_VALUE 60
     
 #### Changes to ACL\_TABLE for DTel watchlist support
 Two new ACL table types are introduced to support DTel watchlists:
@@ -406,3 +467,25 @@ AclRule objects of the above types are created if ACL table corresponding to the
 
 * ACL_TABLE_DTEL_FLOW_WATCHLIST 
 * ACL_TABLE_DTEL_DROP_WATCHLIST
+
+## Minimum configuration
+Following is the minimum configuration for each DTel feature to detect intended events and generate reports:
+
+**DTel general:**
+1. Switch id
+2. Report session with at least source IP, one destination IP and UDP destination port set
+
+**INT specific:**
+1. INT L4 DSCP: value and mask
+2. At least one INT session (with at least max-hop count set)
+3. At least one flow watchlist with flow-op = INT
+4. At least one sink port
+
+**Postcard specific:**
+1. At least one flow watchlist with flow-op = POSTCARD
+
+**Drop report specific:**
+1. At least one drop watchlist with drop report enabled
+
+**Queue report specific:**
+1. Reporting enabled on at least one queue with some threshold (latency or depth) set or trail drop enabled.

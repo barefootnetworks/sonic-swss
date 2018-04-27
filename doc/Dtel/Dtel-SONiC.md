@@ -375,6 +375,8 @@ INT_SESSION                 = 1*255VCHAR ; previously configured INT-session-nam
                                          ; Applicable only when FLOW_OP = INT or IOAM
 DROP_REPORT_ENABLE          = "TRUE" / "FALSE" ; Applicable only when table name is DTEL_DROP_WATCHLIST
                                                ; Note: FLOW_OP is not set when this is set
+REPORT_TAIL_DROPS           = "TRUE" / "FALSE" ; Applicable only when table name is DTEL_DROP_WATCHLIST
+                                               ; and DROP_REPORT_ENABLE = "TRUE"
 FLOW_SAMPLE_PERCENT         = 1*DIGIT ; number between 0 to 100
                                       ; Applicable only when FLOW_OP = INT or IOAM or POSTCARD
 REPORT_ALL_PACKETS          = "TRUE" / "FALSE" ; Applicable only when FLOW_OP = INT or IOAM or POSTCARD
@@ -488,4 +490,18 @@ Following is the minimum configuration for each DTel feature to detect intended 
 1. At least one drop watchlist with drop report enabled
 
 **Queue report specific:**
-1. Reporting enabled on at least one queue with some threshold (latency or depth) set or trail drop enabled.
+1. Reporting enabled on at least one queue with some threshold (latency or depth) set or tail drop enabled.
+
+## Testing
+
+Topology used to test DTel features is shown below:
+
+<img src="dtel-test-topology.jpg" width="400" height="400">
+
+Following are the test cases to verify:
+* INT source behavior
+* INT sink behavior (using 1-hop sink)
+* INT behavior with and without report suppression
+* POSTCARD behavior with and without report suppression
+* Drop reporting 
+* Queue reporting

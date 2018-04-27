@@ -18,6 +18,7 @@ SAI                       | Switch Abstraction Interface
 INT                       | In-band Network Telemetry
 DSCP							| Differentiated Services Code Point
 OID								| Object IDentifier
+PTF			  | Packet Test Framework
 
 # Sub-system Overview 
 For more information on Dataplane Telemetry, please refer to 

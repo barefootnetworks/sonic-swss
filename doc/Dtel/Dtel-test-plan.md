@@ -14,7 +14,18 @@ PTF								| Packet Test Framework
 This document provides details on Dataplane telemetry testing on a SONiC switch DUT. Every test performs set up and tear down of all DTel related configuration required for it to execute. Tests are written to verify DTel functionality in the data path, indirectly verifying that configuration from SONiC was propagated correctly.  
 
 # Test structure 
-Every test is responsible for installing and clearing all the required configuration. A new Python-based library that reads and writes DTel-specific configuration into Config DB will be added to sonic-mgmt repo. This library contains the following files:
+Every test is responsible for installing and clearing all the required configuration. A new Python module that reads and writes DTel-specific configuration into Config DB will be added to sonic-mgmt repo. This module contains two submodules. The first one is called "dtel" and it implements an absrtaction of dataplane telemetry and all its associated concepts, such as report sessions, watchlists, etc. It contains the following files:
+
+File name				     | Description
+----------------------------| -------------
+switch.py	            | Getters, setters and validators for switch global level attributes 
+dtel\_report\_session.py| Getters, setters and validators for report session attributes
+dtel\_int\_session.py   | Getters, setters and validators for INT session attributes
+dtel\_queue\_report.py  | Getters, setters and validators for queue reporting attributes
+dtel\_event.py          | Getters, setters and validators for DTel event attributes
+dtel\_watchlist.py		  | Getters, setters and validators for DTel flow and drop watchlists 
+
+The second submodule is called "sonic" and it implements the SONiC-specific functionality for dataplane telemetry configuration. All classes within this submodule inherit from the according class of the "dtel" submodule, and extent their properties and methods. "sonic" contains the following files:
 
 File name				     | Description
 ----------------------------| -------------
@@ -41,8 +52,7 @@ As an example, setting/getting DSCP attribute for a DTel event object is done us
 ``` 
 
 ## Testbed
-DTel tests will run on __ptf32__ topology described in:
-[SONiC test topologies](https://github.com/Azure/sonic-mgmt/blob/master/ansible/doc/README.testbed.Topology.md)
+DTel tests will run on __ptf32__ topology.
 
 <img src="dtel-test-topology.jpg" width="400" height="400">
 

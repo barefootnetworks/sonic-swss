@@ -1,6 +1,6 @@
 # Dataplane Telemetry in SONiC 
 # High Level Design
-Revision 0.1
+Revision 0.2
 
 # About this Manual
 This document provides general information on the implementation of the Dataplane Telemetry (DTel) feature in SONiC.
@@ -42,7 +42,7 @@ DTEL	               | Switch-wide DTel configuration parameters
 DTEL\_REPORT\_SESSION| DTel report session specific configuration
 DTEL\_INT\_SESSION   | In-band Network Telemetry session specific configuration
 DTEL\_QUEUE\_REPORT  | DTel Queue report related configuration
-DTEL\_EVENT\          | Configuration specific to DTel events that trigger reports 
+DTEL\_EVENT          | Configuration specific to DTel events that trigger reports 
 
 Please refer to 
 [Dataplane Telemetry SAI API](https://github.com/opencomputeproject/SAI/blob/master/doc/DTEL/SAI-Proposal-Data-Plane-Telemetry.md) for more information on the above terminology
@@ -283,7 +283,7 @@ Most events are handled as shown in the sequence diagram below. Ones which are d
 
 __Figure 2: Generic control flow for DTel events__. 
 
-Configuring INT sink ports and queue reports require looking up port OIDs for the interfaces involved. Note that these configurations are applicable only to physical ports currently. If the port object is not initialized yet, DTelOrch agent will set up a callback to receive notification on port init and perform deferred config application.
+Configuring INT sink ports and queue reports requires looking up port OIDs for the interfaces involved. Note that these configurations are currently only applicable to physical ports. If the port object is not initialized yet, DTelOrch agent will set up a callback to receive a notification on port init and perform a deferred config application.
 
 ![Control flow](cflow-2.jpg)
 
@@ -295,9 +295,9 @@ __Figure 3: Control flow for DTel events that depend on other Orch agents__.
 * INT sessions referenced by INT watchlists
 * Report sessions referenced by DTel events
 
-DTel event object creation mandates that the required report-session object be already created. Similarly, INT flow watchlist creation mandates that the required INT session object is already created. When DTel orchagent is restarted and all the ConfigDB events are played back, dependent events that are played out of order are inherently ordered by the orchagent. This is done by not processing the dependent event until all the pre-requisite events have been processed.
+DTel event object creation mandates that the required report-session object is already created. Similarly, INT flow watchlist creation mandates that the required INT session object is already created. When DTel orchagent is restarted and all the ConfigDB events are played back, dependent events played out of order are inherently ordered by the orchagent. This is done by not processing the dependent event until all the pre-requisite events have been processed.
 
-Reference counting is used to control the deletion of report-session and INT session objects. When the object is created, initial reference count of these objects are set to 1. Each time a new object reference is added, the count is incremented by 1. When a delete event is received, or when a reference is removed, the count is decremented by 1. The object will be deleted only if the count <= 1.
+Reference counting is used to control the deletion of report session and INT session objects. When the object is created, initial reference count of these objects are set to 1. Each time a new object reference is added, the count is incremented by 1. When a delete event is received, or when a reference is removed, the count is decremented by 1. The object will be deleted only if the count reaches zero.
 
 
 ![Control flow](cflow-3.jpg "Control flow")
@@ -438,7 +438,7 @@ Our tests for DTel make use of euclid, and more examples can be found there.
 Sample configuration in config_db.json after "config save":
 
 ```
-    "DTEL_A_TABLE": {
+    "DTEL": {
         "FLOW_STATE_CLEAR_CYCLE": {
             "FLOW_STATE_CLEAR_CYCLE": "0"
         },
@@ -462,7 +462,7 @@ Sample configuration in config_db.json after "config save":
         }
     },
     
-    "DTEL_C_INT_SESSION_TABLE": {
+    "DTEL_INT_SESSION": {
         "INT_SESSION1": {
             "COLLECT_EGRESS_TIMESTAMP": "FALSE",
             "COLLECT_SWITCH_PORTS": "FALSE",
@@ -473,7 +473,7 @@ Sample configuration in config_db.json after "config save":
         }
     },
     
-    "DTEL_B_REPORT_SESSION_TABLE": {
+    "DTEL_REPORT_SESSION": {
         "REPORT_SESSION1": {
             "SRC_IP": "10.12.11.20",
             "TRUNCATE_SIZE": "256",
